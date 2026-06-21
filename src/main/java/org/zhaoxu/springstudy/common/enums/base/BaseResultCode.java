@@ -13,6 +13,8 @@ public enum BaseResultCode implements IResultCode {
     PARAM_VALID_ERROR(40001, "参数校验失败"),
     REQUEST_BODY_ERROR(40002, "请求体格式错误"),
     BIND_PARAM_ERROR(40003,"表单参数绑定失败" ),
+    NOT_FOUND_ERROR(40004, "请求接口不存在"),
+
 
     // ========== 通用认证权限 40100-40199 ==========
     TOKEN_INVALID(40100, "登录已失效，请重新登录"),

@@ -1,5 +1,8 @@
 package org.zhaoxu.springstudy.common.exception;
 
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.zhaoxu.springstudy.common.enums.base.BaseResultCode;
 import org.zhaoxu.springstudy.common.result.Result;
 import org.springframework.http.HttpStatus;
@@ -43,6 +46,13 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.OK)
     public Result<Void> handleBusiness(BusinessException e) {
         return Result.error(e.getCodeEnum(), e.getMessage());
+    }
+
+    // 1. 处理 404 接口不存在
+    @ExceptionHandler({NoHandlerFoundException.class, HttpRequestMethodNotSupportedException.class, NoResourceFoundException.class})
+    @ResponseStatus(HttpStatus.OK)
+    public Result<Void>  handle404() {
+        return Result.error(BaseResultCode.NOT_FOUND_ERROR);
     }
 
     // 系统未知异常
