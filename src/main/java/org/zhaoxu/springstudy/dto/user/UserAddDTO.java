@@ -1,4 +1,4 @@
-package org.zhaoxu.springstudy.DTO.user;
+package org.zhaoxu.springstudy.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

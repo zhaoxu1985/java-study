@@ -1,4 +1,4 @@
-package org.zhaoxu.springstudy.DTO.user;
+package org.zhaoxu.springstudy.dto.user;
 
 import lombok.Data;
 

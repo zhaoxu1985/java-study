@@ -1,11 +1,12 @@
-package org.zhaoxu.springstudy.common.vo;
+package org.zhaoxu.springstudy.vo;
 
 import lombok.Data;
 import java.util.List;
 
 /**
- * 通用分页返回对象
- * 自定义字段，自定义名称
+ * 全局统一分页出参
+ * 替代 MP 原生 IPage，不暴露 pages 字段
+ * @param <T> 分页列表泛型
  */
 @Data
 public class PageResultVO<T> {
