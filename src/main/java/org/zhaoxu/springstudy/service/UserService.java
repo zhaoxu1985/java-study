@@ -1,8 +1,7 @@
 package org.zhaoxu.springstudy.service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import org.zhaoxu.springstudy.dto.user.UserAddDTO;
-import org.zhaoxu.springstudy.dto.user.UserEditDTO;
+import org.zhaoxu.springstudy.dto.user.UserAddEditDTO;
+import org.zhaoxu.springstudy.dto.user.UserDeleteDTO;
 import org.zhaoxu.springstudy.dto.user.UserQueryDTO;
 import org.zhaoxu.springstudy.vo.PageResultVO;
 import org.zhaoxu.springstudy.vo.user.UserVO;
@@ -33,14 +32,19 @@ public interface UserService extends IService<User> {
      * @param dto 用户新增DTO
      * @return 用户VO
      */
-    UserVO addUser(UserAddDTO dto);
+    UserVO addUser(UserAddEditDTO dto);
 
     /**
      * 编辑用户
      * @param dto 用户编辑DTO
      * @return 用户VO
      */
-    UserVO updateUser(UserEditDTO dto);
+    UserVO updateUser(UserAddEditDTO dto);
+
+    /**
+     * 删除用户
+     */
+    UserVO deleteUser(UserDeleteDTO dto);
 
     /**
      * 分页查询用户

@@ -1,10 +1,10 @@
 package org.zhaoxu.springstudy.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import jakarta.validation.groups.Default;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.zhaoxu.springstudy.dto.user.UserAddDTO;
-import org.zhaoxu.springstudy.dto.user.UserEditDTO;
+import org.zhaoxu.springstudy.dto.user.UserAddEditDTO;
+import org.zhaoxu.springstudy.dto.user.UserDeleteDTO;
 import org.zhaoxu.springstudy.dto.user.UserQueryDTO;
 import org.zhaoxu.springstudy.vo.user.UserVO;
 import org.zhaoxu.springstudy.common.result.Result;
@@ -37,15 +37,22 @@ public class UserController {
 
     // 新增接口
     @PostMapping("/add")
-    public Result<UserVO> addUser(@Validated(UserGroup.Add.class) @RequestBody UserAddDTO dto){
+    public Result<UserVO> addUser(@Validated({UserGroup.Add.class, Default.class}) @RequestBody UserAddEditDTO dto){
         return Result.success(userService.addUser(dto));
     }
 
     // 编辑接口
     @PostMapping("/edit")
-    public Result<UserVO> updateUser(@Validated(UserGroup.Edit.class) @RequestBody UserEditDTO dto){
+    public Result<UserVO> updateUser(@Validated(UserGroup.Edit.class) @RequestBody UserAddEditDTO dto){
         return Result.success(userService.updateUser(dto));
     }
+
+    // 编辑接口
+    @PostMapping("/delete")
+    public Result<UserVO> updateUser(@Validated(UserGroup.Edit.class) @RequestBody UserDeleteDTO dto){
+        return Result.success(userService.deleteUser(dto));
+    }
+
 
     // 用户分页列表
     @PostMapping("/list")

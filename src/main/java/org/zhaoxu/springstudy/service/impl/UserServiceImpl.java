@@ -1,6 +1,7 @@
 package org.zhaoxu.springstudy.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import org.zhaoxu.springstudy.dto.user.UserDeleteDTO;
 import org.zhaoxu.springstudy.mapstruct.UserConverter;
 import org.zhaoxu.springstudy.mapstruct.PageConverter;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -8,8 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.zhaoxu.springstudy.dto.user.UserAddDTO;
-import org.zhaoxu.springstudy.dto.user.UserEditDTO;
+import org.zhaoxu.springstudy.dto.user.UserAddEditDTO;
 import org.zhaoxu.springstudy.dto.user.UserQueryDTO;
 import org.zhaoxu.springstudy.vo.PageResultVO;
 import org.zhaoxu.springstudy.vo.user.UserVO;
@@ -27,14 +27,16 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    private final UserConverter userConverter;
-    private final PageConverter pageConverter;
+    @Autowired
+    private  UserConverter userConverter;
+    @Autowired
+    private  PageConverter pageConverter;
 
-    // 构造器注入，无需 @Autowired
-    public UserServiceImpl(UserConverter userConverter, PageConverter pageConverter) {
-        this.userConverter = userConverter;
-        this.pageConverter = pageConverter;
-    }
+//    // 构造器注入，无需 @Autowired
+//    public UserServiceImpl(UserConverter userConverter, PageConverter pageConverter) {
+//        this.userConverter = userConverter;
+//        this.pageConverter = pageConverter;
+//    }
 
     @Override
     public List<UserVO> listUsers() {
@@ -54,7 +56,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public UserVO addUser(UserAddDTO dto) {
+    public UserVO addUser(UserAddEditDTO dto) {
         // 校验用户名重复
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getUsername, dto.getUsername());
@@ -64,7 +66,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 使用 MapStruct 将 DTO 转换为 Entity
         User user = userConverter.toEntity(dto);
-
+        user.setId(null);
         // 保存实体
         this.save(user);
 
@@ -73,25 +75,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public UserVO updateUser(UserEditDTO dto) {
+    public UserVO updateUser(UserAddEditDTO dto) {
         // 1. 根据ID查询用户
         User user = this.getById(dto.getId());
         if (user == null) {
             throw new BusinessException(UserCode.USER_NOT_EXIST);
         }
 
-        // 2. 用户名唯一校验（排除自身ID）
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, dto.getUsername())
-                .ne(User::getId, dto.getId());
-        if (this.getOne(wrapper) != null) {
-            throw new BusinessException(UserCode.USERNAME_EXIST);
+        // 2. MapStruct 局部更新对象
+        userConverter.updateEntityFromDTO(dto, user);
+        // 3. 执行数据库更新
+        this.updateById(user);
+
+        return userConverter.toVO(user);
+    }
+
+    @Override
+    public UserVO deleteUser(UserDeleteDTO dto) {
+        // 1. 根据ID查询用户
+        User user = this.getById(dto.getId());
+        if (user == null) {
+            throw new BusinessException(UserCode.USER_NOT_EXIST);
         }
 
-        // 3. MapStruct 局部更新对象
+        // 2. MapStruct 局部更新对象
         userConverter.updateEntityFromDTO(dto, user);
-        // 4. 执行数据库更新
-        this.updateById(user);
+        // 3. 执行数据库更新
+        this.removeById(user);
 
         return userConverter.toVO(user);
     }

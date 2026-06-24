@@ -5,6 +5,7 @@ import org.mapstruct.Mapper;
 import org.zhaoxu.springstudy.vo.PageResultVO;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * 通用分页转换器
