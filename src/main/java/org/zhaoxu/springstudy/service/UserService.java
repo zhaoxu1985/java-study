@@ -13,7 +13,7 @@ import java.util.List;
  * 用户服务接口
  * 返回类型使用 VO（视图对象），避免直接暴露实体
  */
-public interface UserService extends IService<User> {
+public interface UserService {
     /**
      * 获取所有用户列表
      * @return 用户VO列表
@@ -45,6 +45,7 @@ public interface UserService extends IService<User> {
      * 删除用户
      */
     UserVO deleteUser(UserDeleteDTO dto);
+    boolean batchDeleteUser(UserDeleteDTO dto);
 
     /**
      * 分页查询用户

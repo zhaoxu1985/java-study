@@ -21,6 +21,7 @@ public interface UserConverter {
      * 无需额外@Mapping，不存在的字段会自动忽略
      */
     User toEntity(UserAddEditDTO dto);
+    User toEntity(UserDeleteDTO dto);
 
     /**
      * UserEditDTO 更新到已有 User 对象（局部更新）

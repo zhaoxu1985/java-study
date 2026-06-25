@@ -49,9 +49,15 @@ public class UserController {
 
     // 编辑接口
     @PostMapping("/delete")
-    public Result<UserVO> updateUser(@Validated(UserGroup.Edit.class) @RequestBody UserDeleteDTO dto){
+    public Result<UserVO> deleteUser(@Validated(UserGroup.Delete.class) @RequestBody UserDeleteDTO dto){
         return Result.success(userService.deleteUser(dto));
     }
+
+    @PostMapping("/delete-batch")
+    public Result<Boolean> batchDeleteUser(@Validated(UserGroup.BatchDelete.class) @RequestBody UserDeleteDTO dto){
+        return Result.success(userService.batchDeleteUser(dto));
+    }
+
 
 
     // 用户分页列表

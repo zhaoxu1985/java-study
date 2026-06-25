@@ -10,4 +10,9 @@ public interface UserGroup {
 
     /** 编辑分组 */
     interface Edit {}
+
+    interface Delete {}
+
+    interface BatchDelete {}
+
 }

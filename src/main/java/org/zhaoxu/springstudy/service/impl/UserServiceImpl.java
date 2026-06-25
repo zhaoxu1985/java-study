@@ -21,7 +21,10 @@ import org.zhaoxu.springstudy.mapper.UserMapper;
 import org.zhaoxu.springstudy.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -105,6 +108,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         return userConverter.toVO(user);
     }
+
+    public boolean batchDeleteUser(UserDeleteDTO dto){
+
+        Long[] ids = dto.getIds();
+        Collection<Long> idList = Arrays.stream(ids)
+                .filter(Objects::nonNull) // 过滤 null
+                .filter(item->item > 0)
+                .toList();
+
+        return this.removeByIds(idList);
+    };
+
 
     @Override
     public PageResultVO<UserVO> pageUser(UserQueryDTO query){
