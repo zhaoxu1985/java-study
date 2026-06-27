@@ -88,8 +88,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 2. MapStruct 局部更新对象
         userConverter.updateEntityFromDTO(dto, user);
         // 3. 执行数据库更新
-        this.updateById(user);
-
+        boolean success = this.updateById(user);
+        if(!success){
+            throw new BusinessException(UserCode.EDIT_FAIL);
+        }
         return userConverter.toVO(user);
     }
 

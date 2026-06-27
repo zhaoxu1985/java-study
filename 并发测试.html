@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据库锁测试 | 大屏高清日志版</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Consolas, monospace;
+    }
+    body {
+      background: #f5f7fa;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    h2 {
+      padding: 16px 24px;
+      color: #1f2937;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 20px;
+    }
+    .main-wrap {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* 左侧 分组+接口 */
+    .left-panel {
+      width: 500px;
+      background: #fff;
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .group-top-bar {
+      padding: 14px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .group-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    .group-item {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .group-header {
+      padding: 12px 14px;
+      background: #f8fafc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .group-header.active {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+    }
+    .group-name {
+      font-weight: 500;
+      font-size: 15px;
+    }
+    .group-opt button {
+      font-size: 12px;
+      padding: 3px 8px;
+      margin-left: 6px;
+    }
+    .api-list {
+      padding: 10px 14px;
+      border-top: 1px dashed #eee;
+    }
+    .api-item {
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      border: 1px solid #f1f5f9;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .api-item.active {
+      background: #eff6ff;
+      border-color: #3b82f6;
+    }
+    .api-desc {
+      color: #64748b;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+    .add-api-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 6px;
+      font-size: 13px;
+    }
+
+    /* 接口编辑区 */
+    .edit-panel {
+      border-top: 1px solid #eee;
+      padding: 14px;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+    .form-item {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      color: #374151;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+      font-family: monospace;
+    }
+    .num-row {
+      display: flex;
+      gap: 12px;
+    }
+    .num-row .form-item {
+      flex: 1;
+    }
+
+    /* 右侧 执行+统计+日志（大屏加宽） */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 20px;
+    }
+    .run-bar {
+      padding: 14px;
+      background: #fff;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      border: 1px solid #e2e8f0;
+    }
+    button {
+      padding: 8px 18px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: opacity 0.2s;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .btn-blue { background: #2563eb; color: #fff; }
+    .btn-green { background: #16a34a; color: #fff; }
+    .btn-orange { background: #f59e0b; color: #fff; }
+    .btn-red { background: #ef4444; color: #fff; }
+    .btn-gray { background: #64748b; color: #fff; }
+
+    /* 统计面板 */
+    .stat-panel {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .stat-card {
+      padding: 16px;
+      background: #fff;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .stat-label { font-size: 13px; color: #64748b; margin-bottom: 6px; }
+    .stat-val { font-size: 22px; font-weight: bold; }
+    .succ { color: #16a34a; }
+    .fail { color: #dc2626; }
+    .time { color: #2563eb; }
+
+    /* 日志区域 - 大屏优化，宽展示、多字段 */
+    .log-container {
+      flex: 1;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .log-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+    }
+    .log-item:hover {
+      background-color: #f9fafb;
+    }
+    .log-header-row {
+      display: grid;
+      grid-template-columns: 100px 180px 120px 120px 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #fff;
+      text-align: center;
+    }
+    .tag-succ { background: #22c55e; }
+    .tag-fail { background: #f87171; }
+    .tag-info { background: #94a3b8; }
+    .log-time {
+      color: #64748b;
+      font-family: monospace;
+    }
+    .log-api-name {
+      font-weight: 500;
+      color: #1e40af;
+    }
+    .log-task-info {
+      color: #374151;
+    }
+    .log-cost {
+      font-family: monospace;
+      color: #7c3aed;
+    }
+    /* 响应体区域，完整展示，加高 */
+    .resp-wrap {
+      margin-top: 10px;
+    }
+    .resp-title {
+      font-size: 13px;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+    .resp-box {
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 6px;
+      font-family: Consolas, monospace;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 220px;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .collapse { display: none; }
+    .collapse.show { display: block; }
+  </style>
+</head>
+<body>
+<h2>数据库表锁/行锁 混合并发测试工具 | 大屏清晰日志版</h2>
+<div class="main-wrap">
+  <!-- 左侧：分组 + 子接口 + 编辑区 -->
+  <div class="left-panel">
+    <div class="group-top-bar">
+      <button class="btn-green" id="createGroup">新建分组</button>
+      <button class="btn-red" id="delCurGroup">删除当前分组</button>
+      <button class="btn-gray" id="clearAllData">清空全部配置</button>
+    </div>
+
+    <div class="group-container" id="groupWrap"></div>
+
+    <div class="edit-panel">
+      <div class="form-item">
+        <label>接口名称（标识：读/写/更新/删除）</label>
+        <input type="text" id="apiName" placeholder="例：用户查询(读)、订单新增(写)">
+      </div>
+      <div class="form-item">
+        <label>接口 URL（POST）</label>
+        <input type="text" id="apiUrl" placeholder="http://127.0.0.1:8080/api/table/query">
+      </div>
+      <div class="form-item">
+        <label>JSON 请求体 Body</label>
+        <textarea id="apiBody" placeholder='{"tableId":1,"data":"test"}'></textarea>
+      </div>
+      <div class="num-row">
+        <div class="form-item">
+          <label>单接口并发数</label>
+          <input type="number" id="apiConc" min="1" value="10">
+        </div>
+        <div class="form-item">
+          <label>单任务循环次数</label>
+          <input type="number" id="apiLoop" min="1" value="1">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧：执行控制 + 统计 + 大屏日志区 -->
+  <div class="right-panel">
+    <div class="run-bar">
+      <div>
+        <label>执行模式：</label>
+        <select id="runMode" style="padding:6px 10px;">
+          <option value="mix">混合并发(表锁测试首选)</option>
+          <option value="single">逐个串行执行</option>
+        </select>
+      </div>
+      <button class="btn-blue" id="runCurApi">运行选中单个接口</button>
+      <button class="btn-orange" id="runGroupAll">运行分组全部接口</button>
+      <button class="btn-gray" id="toggleResp">折叠/展开响应体</button>
+      <button class="btn-gray" id="clearLog">清空日志</button>
+    </div>
+
+    <div class="stat-panel">
+      <div class="stat-card">
+        <div class="stat-label">总请求数</div>
+        <div class="stat-val" id="totalCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">成功请求</div>
+        <div class="stat-val succ" id="succCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">失败请求</div>
+        <div class="stat-val fail" id="failCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">整体耗时(秒)</div>
+        <div class="stat-val time" id="totalCost">0.00</div>
+      </div>
+    </div>
+
+    <div class="log-container" id="logBox"></div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'db_lock_full_log_data';
+  let groupList = [];
+  let curGroupIdx = -1;
+  let curApiIdx = -1;
+  let isFold = false;
+  let isRunning = false;
+
+  // DOM 元素
+  const groupWrap = document.getElementById('groupWrap');
+  const apiName = document.getElementById('apiName');
+  const apiUrl = document.getElementById('apiUrl');
+  const apiBody = document.getElementById('apiBody');
+  const apiConc = document.getElementById('apiConc');
+  const apiLoop = document.getElementById('apiLoop');
+  const runMode = document.getElementById('runMode');
+  const logBox = document.getElementById('logBox');
+  const totalCount = document.getElementById('totalCount');
+  const succCount = document.getElementById('succCount');
+  const failCount = document.getElementById('failCount');
+  const totalCost = document.getElementById('totalCost');
+
+  const createGroup = document.getElementById('createGroup');
+  const delCurGroup = document.getElementById('delCurGroup');
+  const clearAllData = document.getElementById('clearAllData');
+  const runCurApi = document.getElementById('runCurApi');
+  const runGroupAll = document.getElementById('runGroupAll');
+  const toggleResp = document.getElementById('toggleResp');
+  const clearLog = document.getElementById('clearLog');
+
+  // 工具方法
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(groupList));
+  }
+  function loadData() {
+    const str = localStorage.getItem(STORAGE_KEY);
+    if(str) groupList = JSON.parse(str);
+    renderGroups();
+  }
+  function escapeHtml(str) {
+    if(!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function resetStat() {
+    totalCount.innerText = '0';
+    succCount.innerText = '0';
+    failCount.innerText = '0';
+    totalCost.innerText = '0.00';
+  }
+  function clearLogContent() {
+    logBox.innerHTML = '';
+    resetStat();
+  }
+
+  // 日志渲染 - 大屏多字段清晰排版
+  function addLog(tagText, tagClass, timeStr, apiNameStr, taskInfo, costMs, resp = '') {
+    const div = document.createElement('div');
+    div.className = 'log-item';
+
+    let respHtml = '';
+    if (resp) {
+      respHtml = `
+                <div class="resp-wrap collapse ${isFold ? '' : 'show'}">
+                    <div class="resp-title">响应内容</div>
+                    <div class="resp-box">${escapeHtml(resp)}</div>
+                </div>
+            `;
+    }
+
+    div.innerHTML = `
+            <div class="log-header-row">
+                <span class="tag ${tagClass}">${tagText}</span>
+                <span class="log-time">${timeStr}</span>
+                <span class="log-api-name">${apiNameStr}</span>
+                <span class="log-task-info">${taskInfo}</span>
+                <span class="log-cost">${costMs} ms</span>
+            </div>
+            ${respHtml}
+        `;
+    logBox.appendChild(div);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  // 分组 & 接口渲染
+  function renderGroups() {
+    groupWrap.innerHTML = '';
+    groupList.forEach((group, gIdx) => {
+      const gDiv = document.createElement('div');
+      gDiv.className = 'group-item';
+      const isCurGroup = gIdx === curGroupIdx;
+
+      let apiHtml = '';
+      group.apiList.forEach((api, aIdx) => {
+        const isCurApi = isCurGroup && aIdx === curApiIdx;
+        apiHtml += `
+                    <div class="api-item ${isCurApi ? 'active' : ''}" data-g="${gIdx}" data-a="${aIdx}">
+                        <div>${api.name || '未命名接口'}</div>
+                        <div class="api-desc">并发:${api.conc} | 循环:${api.loop}</div>
+                    </div>
+                `;
+      });
+
+      gDiv.innerHTML = `
+                <div class="group-header ${isCurGroup ? 'active' : ''}" data-g="${gIdx}">
+                    <span class="group-name">${group.name || '未命名分组'}</span>
+                    <div class="group-opt">
+                        <button class="add-api-btn-inner" data-g="${gIdx}">添加接口</button>
+                    </div>
+                </div>
+                <div class="api-list">
+                    ${apiHtml}
+                    <button class="add-api-btn" data-g="${gIdx}">+ 新增子接口(读/写/更新)</button>
+                </div>
+            `;
+      groupWrap.appendChild(gDiv);
+    });
+
+    document.querySelectorAll('.group-header').forEach(el => {
+      el.onclick = (e) => {
+        if(e.target.classList.contains('add-api-btn-inner')) return;
+        selectGroup(Number(el.dataset.g));
+      };
+    });
+    document.querySelectorAll('.api-item').forEach(el => {
+      el.onclick = () => selectApi(Number(el.dataset.g), Number(el.dataset.a));
+    });
+    document.querySelectorAll('.add-api-btn, .add-api-btn-inner').forEach(el => {
+      el.onclick = () => addNewApi(Number(el.dataset.g));
+    });
+  }
+
+  function selectGroup(gIdx) {
+    saveCurrentApi();
+    curGroupIdx = gIdx;
+    curApiIdx = groupList[gIdx].apiList.length > 0 ? 0 : -1;
+    if(curApiIdx >= 0) loadApiToEdit();
+    else clearEditForm();
+    renderGroups();
+  }
+  function selectApi(gIdx, aIdx) {
+    saveCurrentApi();
+    curGroupIdx = gIdx;
+    curApiIdx = aIdx;
+    loadApiToEdit();
+    renderGroups();
+  }
+  function loadApiToEdit() {
+    if(curGroupIdx <0 || curApiIdx <0) return;
+    const api = groupList[curGroupIdx].apiList[curApiIdx];
+    apiName.value = api.name || '';
+    apiUrl.value = api.url || '';
+    apiBody.value = api.body || '';
+    apiConc.value = api.conc || 10;
+    apiLoop.value = api.loop || 1;
+  }
+  function clearEditForm() {
+    apiName.value = '';
+    apiUrl.value = '';
+    apiBody.value = '';
+    apiConc.value = 10;
+    apiLoop.value = 1;
+  }
+  function saveCurrentApi() {
+    if(curGroupIdx <0 || curApiIdx <0) return;
+    const api = groupList[curGroupIdx].apiList[curApiIdx];
+    api.name = apiName.value.trim();
+    api.url = apiUrl.value.trim();
+    api.body = apiBody.value.trim();
+    api.conc = Number(apiConc.value);
+    api.loop = Number(apiLoop.value);
+    saveData();
+  }
+
+  // 分组/接口 增删
+  function createNewGroup() {
+    saveCurrentApi();
+    groupList.push({
+      name: '新分组(同表读写混合)',
+      apiList: [
+        { name: '查询(读)', url: '', body: '', conc: 10, loop: 1 }
+      ]
+    });
+    curGroupIdx = groupList.length - 1;
+    curApiIdx = 0;
+    saveData();
+    renderGroups();
+    loadApiToEdit();
+  }
+  function deleteCurGroup() {
+    if(curGroupIdx <0) return alert('请先选中分组');
+    groupList.splice(curGroupIdx, 1);
+    curGroupIdx = groupList.length > 0 ? 0 : -1;
+    curApiIdx = -1;
+    saveData();
+    renderGroups();
+    clearEditForm();
+  }
+  function addNewApi(gIdx) {
+    groupList[gIdx].apiList.push({
+      name: '新接口',
+      url: '',
+      body: '',
+      conc: 10,
+      loop: 1
+    });
+    curGroupIdx = gIdx;
+    curApiIdx = groupList[gIdx].apiList.length - 1;
+    saveData();
+    renderGroups();
+    loadApiToEdit();
+  }
+  function clearAllConfig() {
+    if(!confirm('确定清空所有分组、接口配置？不可恢复！')) return;
+    groupList = [];
+    curGroupIdx = -1;
+    curApiIdx = -1;
+    saveData();
+    renderGroups();
+    clearEditForm();
+    clearLogContent();
+  }
+
+  // 网络请求
+  async function postRequest(url, body) {
+    const start = performance.now();
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json;charset=utf-8' },
+        body: body
+      });
+      const txt = await res.text();
+      return { success: true, status: res.status, resp: txt, cost: (performance.now() - start).toFixed(2) };
+    } catch (e) {
+      return { success: false, msg: e.message, resp: e.message, cost: (performance.now() - start).toFixed(2) };
+    }
+  }
+
+  // 单任务执行
+  async function runSingleTask(taskId, apiName, url, body, loop, stat) {
+    const nowTime = new Date().toLocaleTimeString();
+    for(let i=1; i<=loop; i++){
+      const res = await postRequest(url, body);
+      stat.total++;
+      totalCount.innerText = stat.total;
+
+      const taskText = `任务${taskId} 第${i}轮`;
+      if(res.success){
+        stat.succ++;
+        succCount.innerText = stat.succ;
+        addLog('成功', 'tag-succ', nowTime, apiName, taskText, res.cost, res.resp);
+      }else{
+        stat.fail++;
+        failCount.innerText = stat.fail;
+        addLog('失败', 'tag-fail', nowTime, apiName, taskText, res.cost, res.resp);
+      }
+    }
+  }
+
+  // 执行单个接口
+  async function runOneApi(gIdx, aIdx) {
+    if(isRunning) return;
+    if(gIdx <0 || aIdx <0) return alert('请先选择接口');
+    const api = groupList[gIdx].apiList[aIdx];
+    if(!api.url) return alert('请填写接口URL');
+
+    isRunning = true;
+    toggleRunBtn(true);
+    clearLogContent();
+    const sysTime = new Date().toLocaleTimeString();
+    addLog('系统', 'tag-info', sysTime, api.name, '开始单接口测试', '0.00', '');
+
+    const startTime = Date.now();
+    const stat = { total:0, succ:0, fail:0 };
+    const tasks = [];
+
+    for(let i=1; i<=api.conc; i++){
+      tasks.push(runSingleTask(i, api.name, api.url, api.body, api.loop, stat));
+    }
+    await Promise.all(tasks);
+
+    const cost = ((Date.now() - startTime)/1000).toFixed(2);
+    totalCost.innerText = cost;
+    addLog('系统', 'tag-info', new Date().toLocaleTimeString(), api.name, '测试完成', cost * 1000, '');
+
+    isRunning = false;
+    toggleRunBtn(false);
+  }
+
+  // 执行分组全部接口
+  async function runAllApiInGroup(gIdx) {
+    if(isRunning) return;
+    if(gIdx <0) return alert('请先选择分组');
+    const apiArr = groupList[gIdx].apiList;
+    if(apiArr.length === 0) return alert('分组内暂无接口');
+
+    isRunning = true;
+    toggleRunBtn(true);
+    clearLogContent();
+    const sysTime = new Date().toLocaleTimeString();
+    addLog('系统', 'tag-info', sysTime, groupList[gIdx].name, '开始分组混合并发测试', '0.00', '');
+
+    const startTime = Date.now();
+    const stat = { total:0, succ:0, fail:0 };
+    const mode = runMode.value;
+    const allTasks = [];
+
+    if(mode === 'mix'){
+      for(const api of apiArr){
+        if(!api.url) continue;
+        for(let i=1; i<=api.conc; i++){
+          allTasks.push(runSingleTask(i, api.name, api.url, api.body, api.loop, stat));
+        }
+      }
+      await Promise.all(allTasks);
+    } else if(mode === 'single'){
+      for(const api of apiArr){
+        if(!api.url) continue;
+        const tasks = [];
+        for(let i=1; i<=api.conc; i++){
+          tasks.push(runSingleTask(i, api.name, api.url, api.body, api.loop, stat));
+        }
+        await Promise.all(tasks);
+      }
+    }
+
+    const cost = ((Date.now() - startTime)/1000).toFixed(2);
+    totalCost.innerText = cost;
+    addLog('系统', 'tag-info', new Date().toLocaleTimeString(), groupList[gIdx].name, '分组测试全部完成', cost * 1000, '');
+
+    isRunning = false;
+    toggleRunBtn(false);
+  }
+
+  function toggleRunBtn(disabled) {
+    runCurApi.disabled = disabled;
+    runGroupAll.disabled = disabled;
+  }
+  function toggleResponse() {
+    isFold = !isFold;
+    document.querySelectorAll('.collapse').forEach(el => {
+      el.classList.toggle('show', !isFold);
+    });
+  }
+
+  // 事件绑定
+  window.onload = loadData;
+  [apiName, apiUrl, apiBody, apiConc, apiLoop].forEach(el => {
+    el.addEventListener('input', saveCurrentApi);
+  });
+
+  createGroup.onclick = createNewGroup;
+  delCurGroup.onclick = deleteCurGroup;
+  clearAllData.onclick = clearAllConfig;
+  runCurApi.onclick = () => runOneApi(curGroupIdx, curApiIdx);
+  runGroupAll.onclick = () => runAllApiInGroup(curGroupIdx);
+  toggleResp.onclick = toggleResponse;
+  clearLog.onclick = clearLogContent;
+</script>
+</body>
+</html>

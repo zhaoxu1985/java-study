@@ -17,6 +17,14 @@ public class User {
 
     private Integer age;
 
+
+    /**
+     * 乐观锁版本字段
+     * MP 识别 @Version 自动实现版本自增 + 条件校验
+     */
+    @Version
+    private Integer version;
+
     // 创建时间，自动填充
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

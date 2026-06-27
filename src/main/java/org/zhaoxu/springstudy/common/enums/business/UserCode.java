@@ -9,7 +9,8 @@ public enum UserCode implements IResultCode {
     USER_NOT_EXIST(41000, "用户不存在"),
     USER_DISABLED(41001, "账号已被禁用"),
     USERNAME_EXIST(41002, "用户名已存在"),
-    DELETE_FAIL(41003, "删除失败");
+    DELETE_FAIL(41003, "删除失败"),
+    EDIT_FAIL(41004, "编辑用户失败");
 
     private final Integer code;
     private final String msg;
