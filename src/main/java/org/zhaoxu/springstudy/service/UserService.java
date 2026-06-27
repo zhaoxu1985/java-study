@@ -1,5 +1,6 @@
 package org.zhaoxu.springstudy.service;
 
+import org.springframework.stereotype.Component;
 import org.zhaoxu.springstudy.dto.user.UserAddEditDTO;
 import org.zhaoxu.springstudy.dto.user.UserDeleteDTO;
 import org.zhaoxu.springstudy.dto.user.UserQueryDTO;
@@ -13,6 +14,8 @@ import java.util.List;
  * 用户服务接口
  * 返回类型使用 VO（视图对象），避免直接暴露实体
  */
+
+@Component
 public interface UserService {
     /**
      * 获取所有用户列表

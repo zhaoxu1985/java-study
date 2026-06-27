@@ -1,7 +1,6 @@
 package org.zhaoxu.springstudy.entity.user;
 
 import com.baomidou.mybatisplus.annotation.*;
-import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -22,8 +21,8 @@ public class User {
      * 乐观锁版本字段
      * MP 识别 @Version 自动实现版本自增 + 条件校验
      */
-    @Version
-    private Integer version;
+//    @Version
+//    private Integer version;
 
     // 创建时间，自动填充
     @TableField(fill = FieldFill.INSERT)

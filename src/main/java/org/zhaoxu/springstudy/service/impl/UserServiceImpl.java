@@ -36,10 +36,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private  PageConverter pageConverter;
 
 //    // 构造器注入，无需 @Autowired
-//    public UserServiceImpl(UserConverter userConverter, PageConverter pageConverter) {
-//        this.userConverter = userConverter;
-//        this.pageConverter = pageConverter;
-//    }
+    public UserServiceImpl(UserConverter userConverter, PageConverter pageConverter) {
+        this.userConverter = userConverter;
+        this.pageConverter = pageConverter;
+    }
 
     @Override
     public List<UserVO> listUsers() {
@@ -55,6 +55,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (user == null) {
             throw new BusinessException(UserCode.USER_NOT_EXIST);
         }
+        System.out.println("toVO:::" + user);
         return userConverter.toVO(user);
     }
 
@@ -120,7 +121,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .toList();
 
         return this.removeByIds(idList);
-    };
+    }
 
 
     @Override

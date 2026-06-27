@@ -1,6 +1,10 @@
 spring:
   application:
     name: spring-study
+  config:
+    import: nacos:/spring-study-dev.yml
+  profiles:
+    active: dev # 激活环境
 
   # 数据源配置
   datasource:
@@ -8,10 +12,26 @@ spring:
     url: jdbc:mysql://localhost:3306/spring-study?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
     username: root
     password: 123456
-  mvc:
-    throw-exception-if-no-handler-found: true
-  resources:
-    add-mappings: false
+  cloud:
+    nacos:
+      # Nacos 服务地址
+      server-addr: 127.0.0.1:8848
+      # 配置中心
+      config:
+        # 环境
+        namespace: dev
+        # 配置文件后缀，默认 properties，推荐 yml
+        file-extension: yml
+        # 分组（默认 DEFAULT_GROUP）
+        group: DEFAULT_GROUP
+      # 服务注册
+      discovery:
+        # 环境
+        namespace: dev
+        # 开启服务注册
+        enabled: true
+        # 分组
+        group: DEFAULT_GROUP
 
 
 # MyBatis-Plus 配置

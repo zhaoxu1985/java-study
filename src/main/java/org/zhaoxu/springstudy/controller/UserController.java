@@ -32,6 +32,8 @@ public class UserController {
     // GET /api/users/{id} - 根据ID获取用户
     @GetMapping("/{id}")
     public Result<UserVO> getUserById(@PathVariable Long id) {
+        UserVO vv = userService.getUserById(id);
+        System.out.println("vv:"+vv);
         return Result.success(userService.getUserById(id));
     }
 
@@ -67,4 +69,6 @@ public class UserController {
         PageResultVO<UserVO> pageResult = userService.pageUser(query);
         return Result.success(pageResult);
     }
+
+
 }
