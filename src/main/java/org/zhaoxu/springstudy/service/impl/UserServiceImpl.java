@@ -120,7 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .toList();
 
         return this.removeByIds(idList);
-    };
+    }
 
 
     @Override

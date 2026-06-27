@@ -1,7 +1,6 @@
 package org.zhaoxu.springstudy.entity.user;
 
 import com.baomidou.mybatisplus.annotation.*;
-import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
